@@ -1,0 +1,39 @@
+#After copying a random Lion King transcipt online into a txt file 
+#I copied the file unto google drive
+
+from google.colab import drive
+drive.mount('/content/drive/')
+import os
+os.chdir('/content/drive/My Drive')
+
+#Checking if the file exists
+!ls
+
+#Python code
+import re
+import pandas as pd
+
+pattern = r'(^[a-zA-Z\s]+):(.+)'
+
+with open('Lion_king.txt', 'rt') as file:
+  for line in file.readlines():
+    match = re.findall(pattern, line)
+    if match:
+      name, line = match[0]
+      data['name'].append(name)
+      data['line'].append(line)
+df=pd.DataFrame(data)
+
+#Reviewing the data
+df.head()
+
+#Finding the number of lines Timon has
+sum(df['name'] == 'Timon')
+
+#Total number of lines in the dataset
+len(df)
+
+#Making the data into a csv file
+df.to_csv('lion_king.csv', index=False)
+
+

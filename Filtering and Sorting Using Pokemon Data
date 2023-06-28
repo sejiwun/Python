@@ -1,0 +1,197 @@
+##This project focuses on filtering and sorting and question/answering. 
+##The dataset includes information of Pokemon from different generations.
+##The tables in the data include: 
+  #Name (the Pokemon's name)
+  #Type 1 (The Pokemon's primary type of ability)
+  #Type 2 (The Pokemon's secondary type of ability)
+  #HP (Value of Hit points)
+  #Attack (Value of Attack points)
+  #Defense (Value of Defense Points)
+  #Sp. Def (Value of Special defense Points)
+  #Sp. Att (Value of Special attack Points)
+  #Speed (Value of speed points)
+  #Total (Total HP-Speed points)
+  #Generation (Generation the Pokemon was born)
+  #Legendary (bool)
+
+import numpy as np
+import pandas as pd
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+df = pd.read_csv("pokemon.csv")
+df.head()
+df.info()
+df.describe()
+
+#### Distribution of Pokemon Types:
+
+df['Type 1'].value_counts().plot(kind='pie', autopct='%1.1f%%', cmap='tab20c', figsize=(10, 8))
+df['Type 1'].value_counts().plot(kind='pie', autopct='%1.1f%%', cmap='tab20c', figsize=(10, 8))
+
+#### Distribution of Pokemon Totals:
+
+df['Total'].plot(kind='hist', figsize=(10, 8))
+df['Total'].plot(kind='box', vert=False, figsize=(10, 5))
+
+#### Distribution of Legendary Pokemons:
+
+df['Legendary'].value_counts().plot(kind='pie', autopct='%1.1f%%', cmap='Set3', figsize=(10, 8))
+
+### filtering
+
+##### 1. How many Pokemons exist with an `Attack` value greater than 150?
+
+sns.boxplot(data=df, x='Attack')
+df.loc[df['Attack'] > 150]
+#or
+df.query("Attack > 150")
+
+
+##### 2. Select all pokemons with a Speed of `10` or less
+
+sns.boxplot(data=df, x='Speed')
+df.loc[df['Speed'] <= 10]  #the table
+(df['Speed'] <= 10).sum()   #answer
+#or
+df.query("Speed <= 10").shape
+
+slow_pokemons_df = df.query("Speed <= 10") #storing the filtered data
+
+
+##### 3. How many Pokemons have a `Sp. Def` (special defense) value of 25 or less?
+
+df.loc[df['Sp. Def'] <= 25]    #the table
+(df['Sp. Def'] <= 25).sum()    #answer
+#or
+df.loc[df['Sp. Def'] <= 25].shape
+
+##### 4. Select all the Legendary pokemons
+
+#First, number of Pokemons that are not legendary
+df.loc[~df['Legendary']].shape 
+#or 
+df.loc[df['Legendary'] == False].shape
+
+
+df.loc[df['Legendary']]    #answer
+legendary_df = df.loc[df['Legendary']]  #storing the filtered data
+legendary_df.head()
+
+
+##### 6. How many Fire-Flying Pokemons are three?
+
+(df['Type 1'] == 'Fire').sum()  #Number of fire pokemons
+(df['Type 2'] == 'Flying').sum() #number of flying pokemons
+
+#Number of fire-flying
+(
+    (df['Type 1'] == 'Fire') &
+    (df['Type 2'] == 'Flying')
+).sum()
+#or
+df.query("`Type 1` == 'Fire' and `Type 2` == 'Flying'").shape
+
+
+
+##### 7. How many 'Poison' pokemons are across both types?
+(
+    (df['Type 1'] == 'Poison') |
+    (df['Type 2'] == 'Poison')                #Answer
+).sum() 
+
+df.query("`Type 1` == 'Poison' or `Type 2`== 'Poison'")  #viewing filtered data
+
+
+
+##### 8. What pokemon of `Type 1` *Ice* has the strongest defense?
+
+df.loc[df['Type 1'] == 'Ice', 'Defense'].max() 
+
+df.loc[
+    (df['Type 1'] == 'Ice') &
+    (df['Defense'] == df.loc[df['Type 1'] == 'Ice', 'Defense'].max())
+]
+
+
+
+##### 9. What's the most common type of Legendary Pokemons?
+
+df.loc[df['Legendary'], ['Type 1']].value_counts()
+
+df.loc[df['Legendary'], ['Type 1']].value_counts().plot(kind='bar')   #Graph of answer
+
+
+
+##### 10. What's the most powerful pokemon from the first 3 generations, of type water?
+
+df.loc[
+    df['Generation'].isin([1,2,3]) &
+    (df['Type 1'] == 'Water')
+      ].sort_values(by='Total', ascending = False)
+
+
+
+##### 11. What's the most powerful Dragon from the last two generations?
+
+df['Generation'].value_counts(sort=False)  #Number of generations in the data
+
+df.loc[ 
+    ((df['Type 1'] == 'Dragon') | (df['Type 2'] == 'Dragon')) 
+    &
+     df['Generation'].isin([5,6])
+].sort_values(by='Total', ascending = False).head()
+
+
+
+
+##### 12. Select most powerful Fire-type pokemons
+
+df.query("Attack > 100 and `Type 1` == 'Fire'")
+
+powerful_fire_df = df.query("Attack > 100 and `Type 1` == 'Fire'")    #storing the filtered data
+
+
+
+##### 13. Select all Water-type, Flying-type pokemons
+
+df.query("`Type 1` == 'Water' and `Type 2` == 'Flying'")
+
+water_flying_df = df.query("`Type 1` == 'Water' and `Type 2` == 'Flying'")     #storing the filtered data
+
+
+
+##### 14. Select specific columns of Legendary pokemons of type Fire
+
+df.loc[
+    (
+    (df['Type 1'] == 'Fire') &  df['Legendary']
+    ),
+    ['Name', 'Attack', 'Generation']
+]
+
+legendary_fire_df = df.loc[
+    (
+    (df['Type 1'] == 'Fire') &  df['Legendary']
+    ),                                                           #storing the filtered data
+    ['Name', 'Attack', 'Generation']
+]
+
+
+
+##### 15. Select Slow and Fast pokemons
+#This is the distribution of speed of the pokemons. The red lines indicate those bottom 5% and top 5% pokemons by speed:
+
+ax = df['Speed'].plot(kind='hist', figsize=(10, 5), bins=100)
+ax.axvline(df['Speed'].quantile(.05), color='red')
+ax.axvline(df['Speed'].quantile(.95), color='red')
+
+bottom_5 = df['Speed'].quantile(.05)
+top_5 = df['Speed'].quantile(.95)
+(bottom_5, top_5)
+
+df.query("Speed < @bottom_5 or Speed > @top_5")
+#OR
+slow_fast_df = df.loc[(df['Speed'] < bottom_5) | (df['Speed'] > top_5)]
+

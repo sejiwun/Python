@@ -1,0 +1,29 @@
+###Excel Report Generator
+##Inputs sql code
+##Outputs result to an excel File
+
+import PySimpleGUI as sg
+import mysql.connector
+import pandas as pd
+import os
+
+#Define the GUI window
+sg.theme("Sandy Beach")
+layout = [
+    [sg.Text('Please enter SQL Code')],
+    [sg.Multiline(size=(50,5), key= 'textbox')],
+    [sg.Submit(), sg.Cancel()]
+]
+window = sg.Window('Report Generator', layout)
+events, values = window.read()
+query = values['textbox']
+
+#SQL Connection/Query
+cnx = mysql.connector.connect(user = user1, password = password1,
+                              host = host1,
+                              database = database1)
+
+#Create and Open Report
+df = pd.read_sql(query, cnx)
+d.to_excel('report.xlxs', index=False)
+os.startfile('report.xlxs')
